@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-public class ForLoopStatement extends Statement {
+public final class ForLoopStatement extends Statement {
     private Statement initialization;
     private Expression condition;
     private Statement increment;

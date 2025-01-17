@@ -6,53 +6,31 @@ import lombok.Setter;
 
 import java.util.List;
 
+
 /** A variable declaration, including support for array declarations. */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-public class Declaration extends Statement {
-    private String name;
-    private Type type;       // Custom enum or class Type (int, bool)
-    private Expression value;      // For single variable declarations
-    private Integer arraySize; // Optional size for array declarations
-    private List<Expression> arrayValues; // Optional initializer list for array
+public final class Declaration extends Statement {
 
-    // Constructor for single variable declaration
-    public Declaration(Location location, Type type, String name, Expression value) {
+    private Type type;
+    private Identifier name;
+    private List<NumberLiteral> dimensions;
+
+    public Declaration(Location location, Type type, Identifier name, List<NumberLiteral> arraySize) {
         super(location);
         this.type = type;
         this.name = name;
-        this.value = value;
-        this.arraySize = null;
-        this.arrayValues = null;
-    }
-
-    // Constructor for array declaration
-    public Declaration(Location location, Type type, String name, Integer arraySize, List<Expression> arrayValues) {
-        super(location);
-        this.type = type;
-        this.name = name;
-        this.arraySize = arraySize;
-        this.arrayValues = arrayValues;
-        this.value = null;
+        this.dimensions = arraySize;
     }
 
     @Override
-    public void prettyPrint(ASTPrettyPrinter pp) {
-        if (arraySize != null) {
-            pp.node("array declaration of %s[%d]".formatted(name, arraySize),
-                    () -> {
-                        if (arrayValues != null) {
-                            arrayValues.forEach(val -> val.prettyPrint(pp));
-                        }
-                    });
-        } else {
-            pp.node("declaration of %s".formatted(name),
-                    () -> {
-                        if (value != null) {
-                            value.prettyPrint(pp);
-                        }
-                    });
-        }
+    public void prettyPrint(ASTPrettyPrinter astPrettyPrint) {
+        astPrettyPrint.node("deklarizacija promenljive tipa %s".formatted(type.userReadableName()),
+                () -> {
+                    name.prettyPrint(astPrettyPrint);
+                    if(dimensions != null && !dimensions.isEmpty())
+                        astPrettyPrint.node("dimenzije niza/matrice", () -> dimensions.forEach(x-> x.prettyPrint(astPrettyPrint)));
+                });
     }
 }

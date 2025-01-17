@@ -5,21 +5,28 @@ start : statement* EOF;
 
 // Naredba
 statement
-    : declaration
+    : declaration SEMICOLON
+    | assignment SEMICOLON
     | ifStatement
     | loopStatement
     | functionDeclaration
-    | expression
-    | inputStatement
     | printStatement
+    | inputStatement
+    | returnStatement
+    | block
     ;
 
-// Deklaracija promenljive
-declaration : type ID (ASSIGN expression)? SEMICOLON | arrayDeclaration;
+// Deklaracija
+declaration
+    : type=(INT | BOOL) ID (LBRACK arraySize+=INT_LIT? RBRACK)*;
+assignment
+    : leftHandSide ASSIGN expression;
 
-// Deklaracija niza
-//arrayDeclaration : type ID '[' INT_LIT ']' (ASSIGN LBRACE expression (COMMA expression)* RBRACE)? SEMICOLON;
-arrayDeclaration : type ID '[' INT_LIT ']' (ASSIGN LBRACE argumentList RBRACE)? SEMICOLON;
+leftHandSide
+    :ID
+    |arrayAccess
+    |declaration
+    ;
 
 // Naredba grananja (if-else)
 ifStatement : IF LPAREN expression RPAREN LBRACE (then+=statement)* RBRACE (ELSE LBRACE (else+=statement)* RBRACE)?;
@@ -28,53 +35,25 @@ ifStatement : IF LPAREN expression RPAREN LBRACE (then+=statement)* RBRACE (ELSE
 loopStatement : whileLoop | forLoop;
 
 // For petlja
-forLoop : FOR LPAREN declaration? expression? SEMICOLON expression? RPAREN LBRACE statement*  RBRACE;
+//forLoop : FOR LPAREN declaration? expression? SEMICOLON expression? RPAREN LBRACE statement* RBRACE;
+forLoop: FOR LPAREN (assignment SEMICOLON)? expression? SEMICOLON assignment RPAREN LBRACE statement* RBRACE;
+
 
 // While petlja
 whileLoop : WHILE LPAREN expression RPAREN LBRACE statement* RBRACE;
 
 // Funkcija (deklaracija sa tipom povratne vrednosti i parametrima)
-functionDeclaration : type ID LPAREN parameterList RPAREN LBRACE statement+ 'return' expression SEMICOLON RBRACE;
 
-// Parametri funkcije
-parameterList : (parameter (COMMA parameter)*)?;
-parameter : type ID;
-
-// Tipovi podataka
-type : 'int' | 'bool';
-
-// Izrazi
-expression
-    :expression AND expression
-    | expression OR expression
-    | expression EQ expression
-    | expression NEQ expression
-    | expression LT expression
-    | expression GT expression
-    | expression MUL expression
-    | expression DIV expression
-    | expression (PLUS | MINUS) expression
-    | expression ASSIGN expression
-    | NOT expression
-    | LPAREN expression RPAREN
-    | ID
-    | INT_LIT
-    | BOOL_LIT
-    | arrayAccess
-    | functionCall
-    | expression INCREMENT
-    | expression DECREMENT
-    ;
+functionDeclaration
+    : type=(INT | BOOL) name=ID LPAREN ( firstType=(INT | BOOL) firstName=ID (COMMA restType+=(INT | BOOL) restName+=ID)* )? RPAREN LBRACE body+=statement* returnStatement SEMICOLON RBRACE;
 
 argumentList
     : (expression (COMMA expression)*)?
     ;
 
-// Pristup elementima niza
-arrayAccess : ID LBRACK expression RBRACK;
+//return
+returnStatement: RETURN expression?;
 
-// Poziv funkcije
-functionCall : ID LPAREN argumentList RPAREN;
 
 // Naredba za unos sa komandne linije
 inputStatement : INPUT LPAREN '&' expression (COMMA '&' expression)* RPAREN SEMICOLON;
@@ -82,11 +61,48 @@ inputStatement : INPUT LPAREN '&' expression (COMMA '&' expression)* RPAREN SEMI
 // Naredba za ispis na standardni izlaz
 printStatement : PRINT LPAREN argumentList RPAREN SEMICOLON;
 
-atom
-    : INT_LIT #NumberConstant
-    | ID #VariableReference
-    | '(' expression ')' #GroupingOperator
+
+block: LBRACE statement* RBRACE;
+
+expression
+    : logicalExpression
     ;
+
+logicalExpression
+    : initial=relationalExpression ( op+=(AND | OR) rest+=relationalExpression )*
+    ;
+
+relationalExpression
+    : initial=additionalExpression ( op+=(LT | LTE | EQ | NEQ| GT | GTE) rest+=additionalExpression )*
+    ;
+
+additionalExpression
+    : initial=multiplicationExpression ( op+=(PLUS | MINUS) rest+=multiplicationExpression )*
+    ;
+
+multiplicationExpression
+    : initial=atom(op+=(MUL | DIV) rest+=atom)*
+    ;
+
+atom
+    :primary
+    |functionCall
+    |arrayAccess
+    ;
+
+primary
+    : ID #VariableReference
+    | INT_LIT #NumberLiteral
+    | BOOL_LIT #LogicalValue
+    | LPAREN expression (COMMA expression)* RPAREN #GroupingOperator
+    ;
+
+// Pristup elementima niza
+arrayAccess
+    :initial=ID(LBRACK rest+=expression* RBRACK)*;
+
+// Poziv funkcije
+functionCall : ID LPAREN argumentList RPAREN;
 
 // Operatori i drugi simboli
 ASSIGN : '=';
@@ -100,18 +116,22 @@ AND : '&&';
 OR : '||';
 NOT : '!';
 LT : '<';
+LTE : '<=';
 GT : '>';
+GTE : '>=';
 EQ : '==';
 NEQ : '!=';
+INT : 'int' ;
+BOOL : 'bool';
 IF : 'if';
 ELSE : 'else';
 FOR : 'for';
 WHILE : 'while';
 PRINT : 'print';
 INPUT : 'input';
-BOOL_LIT : 'true' | 'false';
-ID : [a-zA-Z_][a-zA-Z_0-9]*;
-INT_LIT : [0-9]+;
+ARR: 'arr';
+RETURN : 'return';
+
 LPAREN : '(';
 RPAREN : ')';
 LBRACE : '{';
@@ -120,6 +140,11 @@ LBRACK : '[';
 RBRACK : ']';
 SEMICOLON : ';';
 COMMA : ',';
+
+BOOL_LIT : 'true' | 'false';
+ID : [a-zA-Z_][a-zA-Z_0-9]*;
+INT_LIT : [0-9]+;
+
 
 WS : [ \t\r\n]+ -> skip;
 COMMENT: '/*' .*? '*/' -> skip; // Skips block comments

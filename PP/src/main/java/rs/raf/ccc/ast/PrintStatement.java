@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(callSuper=true)
 /** Prints values of expressions.  */
-public class PrintStatement extends Statement {
+public final class PrintStatement extends Statement {
     private List<Expression> args;
 
     public PrintStatement(Location location, List<Expression> args) {

@@ -9,12 +9,12 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper=true)
-public class StatementList extends Tree {
+public final class StatementList extends Statement {
     private List<Statement> stmts;
 
     public StatementList(Location location, List<Statement> stmts) {
         super(location);
-	this.stmts = stmts;
+	    this.stmts = stmts;
     }
 
     @Override

@@ -5,9 +5,12 @@ import org.antlr.v4.runtime.CharStreams;
 import rs.raf.ccc.Language;
 import rs.raf.ccc.Parser;
 import rs.raf.ccc.Scanner;
+import rs.raf.ccc.Typecheck;
 import rs.raf.ccc.ast.ASTPrettyPrinter;
 import rs.raf.ccc.ast.CSTtoASTConverter;
 import rs.raf.ccc.ast.StatementList;
+import rs.raf.ccc.compiler.Compiler;
+import rs.raf.ccc.vm.VM;
 import rs.raf.utils.PrettyPrint;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +19,11 @@ import java.io.InputStreamReader;
 
 public class Main {
     private static final Language language = new Language();
+    /* Holds the global scope, so keep it open all the time.  */
+    private static final CSTtoASTConverter treeProcessor = new CSTtoASTConverter(language);
+    private static final Compiler compiler = new Compiler(language);
+    private static final VM vm = new VM(language);
+
     public static void main(String[] args) throws IOException {
         if (args.length == 1) {
             runFile(args[0]);
@@ -69,7 +77,20 @@ public class Main {
 
         System.out.println("AST:");
         var pp = new ASTPrettyPrinter(System.out);
-        var program = (StatementList) tree.accept(new CSTtoASTConverter());
+        var program = (StatementList) tree.accept(treeProcessor);
         program.prettyPrint(pp);
+        if (language.hadError()) return;
+
+        new Typecheck(language).typeCheck(program);
+        System.out.println("tAST:");
+        program.prettyPrint(pp);
+        if (language.hadError()) return;
+
+        //var bytecode = compiler.compileInput(program);
+        //language.dumpNewAssembly(System.out, bytecode);
+        /* The compiler cannot emit errors.  */
+        //assert !language.hadError();
+
+        //vm.run(bytecode);
     }
 }

@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-public class WhileLoopStatement extends Statement {
+public final class WhileLoopStatement extends Statement {
     private Expression condition;      // Uslov petlje
     private List<Statement> body;      // Telo petlje
 

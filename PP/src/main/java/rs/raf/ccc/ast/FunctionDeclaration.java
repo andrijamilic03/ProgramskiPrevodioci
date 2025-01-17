@@ -5,41 +5,46 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
 @EqualsAndHashCode
-public class FunctionDeclaration extends Statement {
-    private Type returnType; // Tip povratne vrednosti
-    private String functionName; // Naziv funkcije
-    private List<Parameter> parameters; // Lista parametara
-    private List<Statement> body; // Telo funkcije
+public final class FunctionDeclaration extends Statement {
+    private Type type;
+    private Identifier name;
+    private Map<Identifier, Type> params;
+    private StatementList statementList;
+    private ReturnStatement returnStatement;
 
-    // Konstruktor
-    public FunctionDeclaration(Location location, Type returnType, String functionName, List<Parameter> parameters, List<Statement> body) {
+    public FunctionDeclaration(Location location, Type type, Identifier name, Map<Identifier, Type> params, StatementList statementList, ReturnStatement returnStatement) {
         super(location);
-        this.returnType = returnType;
-        this.functionName = functionName;
-        this.parameters = parameters;
-        this.body = body;
+        this.type = type;
+        this.name = name;
+        this.params = params;
+        this.statementList = statementList;
+        this.returnStatement = returnStatement;
     }
+
 
     @Override
     public void prettyPrint(ASTPrettyPrinter pp) {
-        pp.node("function", () -> {
-            pp.node("returnType", () -> returnType.prettyPrint(pp));
-            pp.node("name", () -> pp.terminal(functionName));
-            pp.node("parameters", () -> {
-                for (Parameter parameter : parameters) {
-                    parameter.prettyPrint(pp);
-                }
-            });
-            pp.node("body", () -> {
-                for (Statement stmt : body) {
-                    stmt.prettyPrint(pp);
-                }
-
-            });
-        });
+        pp.node("deklarizacija funkcije tipa %s".formatted(type.userReadableName()),
+                () -> {
+                    name.prettyPrint(pp);
+                    pp.node("lista parametara:", () -> {
+                        if (params != null && !params.isEmpty()) {
+                            for (Map.Entry<Identifier, Type> entry : params.entrySet()) {
+                                pp.node("parametar tipa %s".formatted(entry.getValue().userReadableName()),
+                                        () -> {
+                                            entry.getKey().prettyPrint(pp);
+                                        }
+                                );
+                            }
+                        }
+                    });
+                    pp.node("tvrdjenja",() -> statementList.prettyPrint(pp));
+                    pp.node("vraca:", () -> returnStatement.prettyPrint(pp));
+                });
     }
 }

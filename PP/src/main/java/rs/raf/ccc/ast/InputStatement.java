@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(callSuper=true)
 /** Input values of expressions.  */
-public class InputStatement extends Statement {
+public final class InputStatement extends Statement {
     private List<Expression> args;
 
     public InputStatement(Location location, List<Expression> args) {

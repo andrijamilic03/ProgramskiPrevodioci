@@ -1,0 +1,20 @@
+int x = 10;
+bool y = true;
+
+
+if (x > 5 && y == true) {
+    x = x + 5;
+} else {
+    x = 0;
+}
+
+int i = 0; while (i < 3) {i = i + 1;}
+
+
+int sum(int a, int b) {return a + b;} int x = sum(11, 15);
+int sum(int a, int b) {return a + b;} int x = sum(x, 15);
+
+
+if (x > 20 || y == false) {
+    print(x);
+}

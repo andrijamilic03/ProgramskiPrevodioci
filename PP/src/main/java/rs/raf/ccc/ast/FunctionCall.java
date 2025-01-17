@@ -9,26 +9,26 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-public class FunctionCall extends Statement {
-    private String functionName;  // Ime funkcije
-    private List<Expression> arguments;  // Argumenti koji se prosleđuju funkciji
+public final class FunctionCall extends Expression {
+    private Type type;
+    private Identifier name;
+    private List<Expression> params;
 
-    // Konstruktor
-    public FunctionCall(Location location, String functionName, List<Expression> arguments) {
+    public FunctionCall(Location location, Identifier name, List<Expression> params) {
         super(location);
-        this.functionName = functionName;
-        this.arguments = arguments;
+        this.name = name;
+        this.params = params;
     }
 
     @Override
-    public void prettyPrint(ASTPrettyPrinter pp) {
-        pp.node("functionCall", () -> {
-            pp.node("functionName", () -> pp.terminal(functionName));  // Ispisivanje imena funkcije
-            pp.node("arguments", () -> {
-                for (Expression argument : arguments) {
-                    argument.prettyPrint(pp);  // Ispisivanje svakog argumenta
+    public void prettyPrint(ASTPrettyPrinter pp)
+    {
+        pp.node("poziv funkcije",
+                () -> {
+                    pp.terminal(name.getIdentifier());
+                    pp.node("argumenti:", () -> {params.forEach(x -> x.prettyPrint(pp));
+                    });
                 }
-            });
-        });
+        );
     }
 }

@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-public class IfStatement extends Statement {
+public final class IfStatement extends Statement {
     private Expression condition;  // Usmerivač uslova (expression)
     private List<Statement> thenStatements; // Telo if bloka
     private List<Statement> elseStatements; // Telo else bloka (opciono)
